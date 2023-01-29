@@ -13,3 +13,8 @@ async def base() -> dict:
         code=200, 
         message=msg
     )
+"""
+dep timezones/time
+arr timezones/time
+duration
+"""

@@ -6,7 +6,7 @@ router = APIRouter()
 @router.get('/')
 async def base() -> dict:
     body = {}
-    msg = "Base Matlab endpoint"
+    msg = 'Base Matlab endpoint'
     
     return response.default(
         data=body,
@@ -14,15 +14,30 @@ async def base() -> dict:
         message=msg
     )
     
-@router.post('/insert')
-async def insert(req: Request) -> dict:
+@router.get('/flightinfo')
+async def get(req: Request) -> dict:
     db = req.app.db['flight']
     
-    data = dict(req.query_params)
+    query = {'_id': req.query_params['username']}
+    out = list(db.find(query))
+    
+    if len(out) == 0:
+        msg = 'The user does not have flight data.'
+        return {'detail': msg}
+        
+    return {'data': out[0]}
+
+@router.post('/insert')
+async def insert(req: Request) -> dict:
+    db = req.app.db['matlab']
+    
+    n = db.estimated_document_count()
+    data = await req.json()
+    
+    data = {
+        '_id': n+1,
+        'data': data['data']
+    }
     db.insert_one(data)
     
-    return response.default(
-        data=data,
-        code=201,
-        message='You inserted an item'
-    )
+    return response.created('You inserted an item')

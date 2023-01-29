@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Request
 from api.utility import response, password
-from api.database import mongo
-from bson.objectid import ObjectId
 
 router = APIRouter()
 
@@ -17,7 +15,7 @@ async def base() -> dict:
     )
     
 @router.get('/find')
-def get_user(req: Request) -> dict:
+async def get_user(req: Request) -> dict:
     db = req.app.db['user']
     
     query = {'_id': req.query_params['username']}
@@ -34,10 +32,34 @@ def get_user(req: Request) -> dict:
     )
     
 @router.get('/login')
-def log_user(req: Request) -> dict:
-    username = req.query_params['username']
-    password = req.query_params['password']
+async def log_user(req: Request) -> dict:
+    db = req.app.db['user']
+    
+    query = {'_id': req.query_params['username']}
+    out = list(db.find(query))
+    
+    if len(out) == 0:
+        err = 'User does not exist in the database.'
+        return response.none(err)
+    
+    if req.query_params['password'] == out[0]['password']:
+        return {'found': True}
+    
+    return {'found': False}
    
 @router.post('/register')
-def reg_user() -> dict:
-    return {}
+async def reg_user(req: Request) -> dict:
+    db = req.app.db['user']
+    
+    body = await req.json()
+    
+    query = {'_id': body['_id']}
+    out = list(db.find(query))
+    
+    if len(out) > 0:
+        err = 'User already exist in the database.'
+        return response.conflict(err)
+    
+    db.insert_one(dict(body))
+    
+    return response.created("The user has been inserted into the database.")

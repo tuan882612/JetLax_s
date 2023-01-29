@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from fastapi import FastAPI
 import os
 
-def setup(app: FastAPI) -> MongoClient:
+def setup(app: FastAPI) -> None:
     url = os.environ['mongo_url']
     app.db = MongoClient(url)['tamu']
     print('Connected to mongodb')
