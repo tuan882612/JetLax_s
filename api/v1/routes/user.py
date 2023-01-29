@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from api.utility import response, password
+from api.utility import response
 
 router = APIRouter()
 
